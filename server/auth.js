@@ -116,7 +116,7 @@ function register({ email, password, name, last, phone }) {
   const info = db.prepare(`
     INSERT INTO users (email, password_hash, name, last_name, phone, role)
     VALUES (?, ?, ?, ?, ?, ?)
-  `).run(em, hash, cleanName || 'Гость', String(last || '').trim(), String(phone || '').trim(), role);
+  `).run(em, hash, cleanName, String(last || '').trim(), String(phone || '').trim(), role);
 
   return findById(info.lastInsertRowid);
 }

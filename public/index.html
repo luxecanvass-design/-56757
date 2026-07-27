@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" translate="no" class="notranslate">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#f4f4f4">
+<meta name="google" content="notranslate">
+<meta http-equiv="Content-Language" content="ru">
 <title>Каталог</title>
 
 <!-- ==================================================================
@@ -1948,15 +1950,15 @@ textarea.ad__f{resize:vertical;min-height:88px;line-height:1.5}
 }
 </style>
 </head>
-<body>
+<body class="notranslate" translate="no">
 
 <div class="topgap"></div>
 <div class="app">
   <div id="hdSlot"></div>
-  <div class="scr" id="scr"></div>
+  <div class="scr notranslate" id="scr" translate="no"></div>
 </div>
 <div id="mini"></div>
-<nav class="tabs" id="tabs" aria-label="Основная навигация"></nav>
+<nav class="tabs notranslate" id="tabs" aria-label="Основная навигация" translate="no"></nav>
 <div id="ov"></div>
 <div id="adm"></div>
 
@@ -3353,8 +3355,8 @@ let tabsReady = false;
 function buildTabs(){
   document.getElementById('tabs').innerHTML =
     '<span class="tabs__pill"></span>' +
-    TAB_ITEMS.map(x => `<button class="tab" data-a="go:${x.k}" aria-label="${x.t}">
-      ${svg(x.i)}<span class="tab__n hide"></span><span>${x.t}</span>
+    TAB_ITEMS.map(x => `<button class="tab notranslate" data-a="go:${x.k}" aria-label="${x.t}" translate="no">
+      ${svg(x.i)}<span class="tab__n hide"></span><span translate="no">${x.t}</span>
     </button>`).join('');
   tabsReady = true;
 }
@@ -3723,26 +3725,25 @@ function scrAuth(){
   const panel = S.authPanel || 'main';
   const bot = (window.__LC_TG_BOT || telegramBotUsername() || '').replace(/^@/, '');
 
-  /* —— нет Telegram вообще → почта/пароль —— */
+  /* —— вход / регистрация по логину (почта + пароль) —— */
   if(panel === 'email'){
     return `
     <div class="auth__logo">${MARK('auth__mark')}</div>
-    <h1 class="form__t auth__t">${reg ? 'Регистрация' : 'Вход'}</h1>
-    <p class="form__s auth__s">Почта и пароль — запасной способ</p>
+    <h1 class="form__t auth__t">${reg ? 'Регистрация по логину' : 'Вход по логину'}</h1>
+    <p class="form__s auth__s">Email и пароль — если нет Telegram</p>
     <form class="form" id="authF" novalidate>
       <div class="auth__warn">
         Пароль <b>нельзя будет сбросить</b> автоматически.
-        ${reg
-          ? 'После создания аккаунта подключите Telegram в профиле, чтобы не потерять доступ.'
-          : 'Если забыли пароль — войдите через Telegram или подключите бота в профиле заранее.'}
+        Подключите Telegram в профиле <b>как можно быстрее</b> — через «Уведомления».
       </div>
-      ${reg ? `<div class="f"><label class="f__l" for="aName">${svg('user','ic ic--sm')} Имя</label>
-        <input class="f__i" id="aName" autocomplete="given-name" placeholder="Иван"></div>` : ''}
-      <div class="f"><label class="f__l" for="aEmail">${svg('mail','ic ic--sm')} Email</label>
+      <div class="f"><label class="f__l" for="aEmail">${svg('mail','ic ic--sm')} Email (логин)</label>
         <input class="f__i" id="aEmail" type="email" autocomplete="email" placeholder="ivanov@mail.ru"></div>
       <div class="f"><label class="f__l" for="aPass">${svg('set','ic ic--sm')} Пароль</label>
         <input class="f__i" id="aPass" type="password" autocomplete="${reg ? 'new-password' : 'current-password'}"
           placeholder="минимум 6 символов"></div>
+      ${reg ? `<div class="f"><label class="f__l" for="aPass2">${svg('set','ic ic--sm')} Повторите пароль</label>
+        <input class="f__i" id="aPass2" type="password" autocomplete="new-password"
+          placeholder="ещё раз"></div>` : ''}
       <button class="btn" type="submit" style="margin-top:14px">${reg ? 'Создать аккаунт' : 'Войти'}</button>
       <button type="button" class="auth__forgot" data-a="auth_panel:main">← Быстрый вход через Telegram</button>
     </form>`;
@@ -3760,7 +3761,7 @@ function scrAuth(){
         <ol>
           <li>Откройте Telegram на телефоне</li>
           <li>Найдите бота ${bot ? `<code>@${esc(bot)}</code>` : 'Luxe Canvas'}</li>
-          <li>Нажмите <b>Start</b> → <b>Поделиться контактом</b></li>
+          <li>Нажмите <b>Start</b> по ссылке с сайта → <b>Поделиться контактом</b></li>
           <li>Вернитесь на сайт кнопкой из бота</li>
         </ol>
       </div>
@@ -3769,7 +3770,7 @@ function scrAuth(){
         ${svg('telegram','ic')} Всё же открыть Telegram здесь
       </button>
       <div class="auth__links">
-        <button type="button" class="auth__link" data-a="auth_panel:email">У меня вообще нет Telegram</button>
+        <button type="button" class="auth__link" data-a="auth_panel:email">${reg ? 'Регистрация по логину' : 'Войти по логину'}</button>
         <button type="button" class="auth__link" data-a="auth_panel:main">← Назад</button>
       </div>
     </div>`;
@@ -3791,7 +3792,7 @@ function scrAuth(){
     </p>
     <div class="auth__links">
       <button type="button" class="auth__link" data-a="auth_panel:other_device">Нет Telegram на этом устройстве</button>
-      <button type="button" class="auth__link" data-a="auth_panel:email">У меня нет Telegram</button>
+      <button type="button" class="auth__link" data-a="auth_panel:email">${reg ? 'Регистрация по логину' : 'Войти по логину'}</button>
     </div>
     <p class="alt" style="margin-top:22px">${reg ? 'Уже есть аккаунт?' : 'Нет аккаунта?'}
       <button type="button" data-a="authmode">${reg ? 'Войти' : 'Зарегистрироваться'}</button></p>
@@ -3939,14 +3940,14 @@ function displayUserTitle(u){
   if(!u) return '';
   const parts = [u.last, u.name, u.middle].map(s => String(s || '').trim()).filter(Boolean);
   if(parts.length) return parts.join(' ');
-  return 'Покупатель';
+  return 'Заполните профиль';
 }
 function displayUserSub(u){
   if(!u) return '';
   const phone = displayUserPhone(u);
   if(phone) return phone;
   if(u.email) return u.email;
-  return 'Заполните ФИО и email';
+  return 'ФИО и email';
 }
 function profileNeedsFill(u){
   if(!u) return false;
@@ -3954,6 +3955,20 @@ function profileNeedsFill(u){
   const last = String(u.last || '').trim();
   const email = String(u.email || '').trim();
   return !name || !last || !email || !email.includes('@') || !email.includes('.');
+}
+/** После любого нового входа без ФИО — сразу анкета, потом nextScreen. */
+function continueAfterAuth(opts){
+  const next = (opts && opts.next) || 'profile';
+  const isNew = !!(opts && opts.isNew);
+  if(isNew || profileNeedsFill(S.user)){
+    S.afterProfile = next;
+    toast(isNew ? 'Аккаунт создан · укажите ФИО и email' : 'Укажите ФИО и email');
+    go('pdata');
+    return;
+  }
+  toast('Вы вошли');
+  go(next);
+  setTimeout(() => maybeAskTgNotif(!!(opts && opts.askTg)), 400);
 }
 
 function scrProfile(){
@@ -3964,17 +3979,18 @@ function scrProfile(){
   if(isAdmin()) items.push(['set','Админ-панель','admin']);
   const u = S.user;
   return `
-  <h1 class="form__t">Профиль</h1>
+  <h1 class="form__t notranslate" translate="no">Профиль</h1>
   ${u ? `<div class="pcard">
       <p class="pcard__n">${esc(displayUserTitle(u))}</p>
       <p class="pcard__e">${esc(displayUserSub(u))}</p>
+      ${profileNeedsFill(u) ? `<button class="btn" style="margin-top:12px" data-a="go:pdata">Заполнить ФИО и email</button>` : ''}
     </div>`
     : `<div class="sec" style="text-align:center">
       <p style="font-size:14px;color:var(--muted);line-height:1.6">Войдите, чтобы видеть заказы,<br>избранное и адреса доставки.</p>
       <button class="btn" style="margin-top:16px" data-a="go:auth">Войти или зарегистрироваться</button>
     </div>`}
   <div class="plist">
-    ${items.map(([i,t,a]) => `<button class="pitem" data-a="${a}">${svg(i,'ic ic--sm')} ${t}
+    ${items.map(([i,t,a]) => `<button class="pitem notranslate" data-a="${a}" translate="no">${svg(i,'ic ic--sm')} <span translate="no">${t}</span>
       <span class="pitem__c">${svg('chev','ic ic--sm')}</span></button>`).join('')}
   </div>
   ${u ? `<div class="plist">
@@ -4103,7 +4119,9 @@ function scrPersonal(){
   <h1 class="form__t">Личные данные</h1>
   <p class="form__s" style="margin-bottom:14px">${S.afterProfile === 'delivery'
     ? 'Для оформления заказа нужны ФИО и email. Телефон уже есть из входа.'
-    : 'Заполните ФИО и email — они нужны для заказов. Телефон берётся из входа.'}</p>
+    : S.afterProfile
+      ? 'Последний шаг — укажите ФИО и email. Потом подключите Telegram в уведомлениях.'
+      : 'Заполните ФИО и email — они нужны для заказов. Телефон берётся из входа.'}</p>
   <form class="form" id="pdF" novalidate>
     <div class="f"><label class="f__l" for="uL">${svg('user','ic ic--sm')} Фамилия</label>
       <input class="f__i" id="uL" value="${esc(u.last || '')}" autocomplete="family-name" required></div>
@@ -4196,17 +4214,17 @@ function sheetTgNotif(){
   if(!telegramReady()) return;
   openOv(`<div class="scrim"></div><div class="sheet" role="dialog" aria-label="Уведомления">
     <div class="sheet__g"></div>
-    <div class="sheet__h"><span class="sheet__t">Уведомления о заказе</span>
+    <div class="sheet__h"><span class="sheet__t">Подключите Telegram</span>
       <button class="hd__b" data-x aria-label="Закрыть">${svg('x')}</button></div>
     <div class="sheet__b" style="padding-top:12px">
       <p style="font-size:15px;font-weight:600;line-height:1.35;margin-bottom:8px;color:var(--ink)">
-        Хотите получать уведомления о заказе?
+        Подключите Telegram как можно быстрее
       </p>
       <p style="font-size:13.5px;color:var(--muted);line-height:1.55;margin-bottom:18px">
-        Статусы обновятся в чате с ботом без спама. Отдельный пуш — только когда заказ доставлен.
+        Так вы не потеряете аккаунт и будете получать статусы заказа в боте. Пуш — только когда заказ доставлен.
       </p>
-      <button class="btn" style="width:100%;margin-bottom:10px" data-a="telegram">Да, хочу</button>
-      <button class="btn btn--gh" style="width:100%" data-a="tgskip">Не сейчас</button>
+      <button class="btn" style="width:100%;margin-bottom:10px" data-a="telegram">Подключить сейчас</button>
+      <button class="btn btn--gh" style="width:100%" data-a="tgskip">Позже</button>
     </div>
   </div>`);
 }
@@ -4234,10 +4252,10 @@ function scrNotif(){
   const bot = telegramBotUsername();
   const linked = !!(S.tgLinked);
   return `
-  <h1 class="form__t">Уведомления</h1>
+  <h1 class="form__t notranslate" translate="no">Уведомления</h1>
   <div class="sec" style="padding-top:8px">
     <p style="font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:18px">
-      Подключите бота — после заказа в чате появится карточка со статусом. Пуш только когда заказ <b>доставлен</b>.
+      Подключите Telegram <b>как можно быстрее</b> — так вы не потеряете аккаунт и будете видеть статусы заказа в боте. Пуш только когда заказ <b>доставлен</b>.
     </p>
     ${!u ? `<div class="pcard" style="margin-bottom:14px">
       <p class="pcard__n">Нужен вход</p>
@@ -4251,7 +4269,7 @@ function scrNotif(){
       </p>
     </div>`}
     <button class="btn" style="width:100%" data-a="telegram" ${ready && u ? '' : 'disabled style="opacity:.45"'}>
-      ${!u ? 'Сначала войдите' : (linked ? 'Открыть бота' : 'Да, хочу')}
+      ${!u ? 'Сначала войдите' : (linked ? 'Открыть бота' : 'Подключить Telegram')}
     </button>
     <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-top:14px">
       ${ready ? (bot ? 'Бот: @' + bot : 'Откроется ваш Telegram-бот') : 'Ссылка на бота появится позже'}
@@ -4292,11 +4310,11 @@ const INFO_PAGES = {
     title:'Связаться с нами',
     body:() => `
       <p class="info__lead">Напишите нам в Telegram — ответим по заказу, размеру и наличию.</p>
-      <button class="ft__tg" data-a="telegram" style="margin-top:22px;max-width:420px">
+      <button class="ft__tg" data-a="chat" style="margin-top:22px;max-width:420px">
         <span class="ft__tg-ic">${svg('tg')}</span>
         <span class="ft__tg-b">
           <span class="ft__tg-n">Telegram</span>
-          <span class="ft__tg-d">${telegramReady() ? 'Открыть диалог с ботом' : 'Ссылка появится перед запуском продаж'}</span>
+          <span class="ft__tg-d">${telegramReady() ? 'Связаться с нами' : 'Ссылка появится перед запуском продаж'}</span>
         </span>
         ${svg('chev','ic ic--sm')}
       </button>
@@ -4553,7 +4571,7 @@ function siteFooter(){
           ftLink('Пользовательское соглашение','terms') +
           ftLink('Публичная оферта','offer'))}
         ${ftCol('Контакты', `
-          <button class="ft__tg" data-a="telegram">
+          <button class="ft__tg" data-a="chat">
             <span class="ft__tg-ic">${svg('tg')}</span>
             <span class="ft__tg-b">
               <span class="ft__tg-n">Telegram</span>
@@ -5028,9 +5046,10 @@ function render(keepScroll){
             S.user = { ...S.user, name, last, middle, email };
           }
           saveUser();
-          const next = S.afterProfile;
+          const next = S.afterProfile || 'profile';
+          const fromCheckout = next === 'delivery';
           S.afterProfile = null;
-          if(next === 'delivery' && S.user){
+          if(fromCheckout && S.user){
             const g = S.checkout.guest;
             g.name = [S.user.last, S.user.name, S.user.middle].map(s => String(s || '').trim()).filter(Boolean).join(' ');
             g.email = S.user.email || '';
@@ -5039,8 +5058,8 @@ function render(keepScroll){
             syncGuest();
           }
           toast('Сохранено');
-          if(next) go(next);
-          else render(true);
+          go(next);
+          if(!fromCheckout) setTimeout(() => maybeAskTgNotif(true), 450);
         }catch(err){
           toast(err.message || 'Не удалось сохранить');
         }
@@ -5115,7 +5134,6 @@ function watchPhotoFav(){
 }
 
 function go(screen){
-  if(screen === 'pdata' && S.screen !== 'cart') S.afterProfile = null;
   if(screen !== S.screen) HIST.push(S.screen);
   S.screen = screen;
   if(screen === 'auth') S.authPanel = 'main';
@@ -5537,7 +5555,22 @@ function shareProduct(){
 }
 
 function modalChat(){
-  openTelegram('support', { sameTab: true });
+  openOv(`<div class="scrim"></div><div class="modal notranslate" role="dialog" aria-label="Связаться" translate="no">
+    <div class="modal__h"><h2 class="modal__t">Связаться с нами</h2>
+      <button class="hd__b" data-x aria-label="Закрыть">${svg('x')}</button></div>
+    <p style="font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:16px">
+      Поможем с размером, наличием и заказом — откроется Telegram-бот и запрос оператору.</p>
+    <button class="ft__tg" data-a="support_open" style="margin-bottom:4px">
+      <span class="ft__tg-ic">${svg('tg')}</span>
+      <span class="ft__tg-b">
+        <span class="ft__tg-n">Telegram</span>
+        <span class="ft__tg-d">${telegramReady() ? 'Написать в поддержку' : 'Ссылка появится позже'}</span>
+      </span>
+      ${svg('chev','ic ic--sm')}
+    </button>
+    <p style="font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:14px">
+      Нажимая кнопку, вы соглашаетесь с
+      <button data-a="info:privacy" style="text-decoration:underline;font-weight:600">политикой конфиденциальности</button>.</p></div>`);
 }
 
 /* ==========================================================
@@ -5681,12 +5714,12 @@ async function finishPhoneAuth(){
     if(d.user && d.user.admin) grantAdmin(d.user.email);
     saveUser();
     await refreshMyOrders(false);
-    toast(S.authMode === 'reg' ? 'Аккаунт создан' : 'Вы вошли');
     S.authStep = 1;
-    setTimeout(() => {
-      go('profile');
-      setTimeout(() => maybeAskTgNotif(true), 400);
-    }, 350);
+    continueAfterAuth({
+      isNew: S.authMode === 'reg' || profileNeedsFill(d.user),
+      next: 'profile',
+      askTg: true
+    });
   }catch(err){
     S.authOtpState = 'bad';
     paintOtpFill();
@@ -5728,23 +5761,20 @@ function bindAuth(){
       if(!window.LC) return toast('API недоступен');
       const email = (document.getElementById('aEmail') || {}).value || '';
       const password = (document.getElementById('aPass') || {}).value || '';
-      const name = (document.getElementById('aName') || {}).value || '';
+      const pass2 = (document.getElementById('aPass2') || {}).value || '';
       if(!String(email).includes('@')) return toast('Укажите email');
       if(String(password).length < 6) return toast('Пароль минимум 6 символов');
       const wasReg = S.authMode === 'reg';
+      if(wasReg && password !== pass2) return toast('Пароли не совпадают');
       try{
         const user = wasReg
-          ? await LC.register({ email: email.trim(), password, name: name.trim() })
+          ? await LC.register({ email: email.trim(), password, name: '' })
           : await LC.login({ email: email.trim(), password });
         S.user = user;
         if(user && user.admin) grantAdmin(user.email);
         saveUser();
         await refreshMyOrders(false);
-        toast(wasReg
-          ? 'Аккаунт создан · подключите Telegram, чтобы не потерять доступ'
-          : 'Вы вошли');
-        go('profile');
-        if(wasReg) setTimeout(() => maybeAskTgNotif(true), 450);
+        continueAfterAuth({ isNew: wasReg || profileNeedsFill(user), next: 'profile', askTg: true });
       }catch(err){
         toast(err.message || 'Ошибка входа');
       }
@@ -5792,12 +5822,20 @@ document.addEventListener('click', e => {
   e.preventDefault();
 
   switch(k){
-    case 'go': closeOv(); go(a); break;
+    case 'go':
+      closeOv();
+      if(a === 'pdata') S.afterProfile = null;
+      go(a);
+      break;
     case 'back': closeOv(); back(); break;
     case 'filters': sheetFilters(); break;
     case 'sort': sheetSort(); break;
     case 'search': modalSearch(); break;
     case 'chat': modalChat(); break;
+    case 'support_open':
+      closeOv();
+      openTelegram('support', { sameTab: true });
+      break;
     /* --- пункты выдачи --- */
     case 'pvzopen': sheetPvz(); break;
     case 'pvzcity':
@@ -8162,8 +8200,11 @@ async function bootFromServer(){
         if(me.admin) grantAdmin(me.email);
         saveUser();
         await refreshMyOrders(false);
-        toast('Вы вошли через Google');
-        S.screen = 'profile';
+        continueAfterAuth({
+          isNew: profileNeedsFill(me),
+          next: 'profile',
+          askTg: true
+        });
       }
     }catch(err){
       toast(err.message || 'Google вход не удался');
@@ -8181,9 +8222,12 @@ async function bootFromServer(){
         if(d.user.admin) grantAdmin(d.user.email);
         saveUser();
         await refreshMyOrders(false);
-        toast('Вы вошли через Telegram');
         history.replaceState(null, '', location.pathname + (location.hash || ''));
-        S.screen = 'profile';
+        continueAfterAuth({
+          isNew: !!(d.isNew || profileNeedsFill(d.user)),
+          next: 'profile',
+          askTg: true
+        });
       }
     }catch(err){
       toast(err.message || 'Ссылка устарела');

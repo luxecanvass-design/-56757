@@ -337,10 +337,11 @@ app.post('/api/auth/telegram-phone', (req, res) => {
   try {
     const tokenIn = String((req.body && req.body.token) || '').trim();
     const user = redeemTgPhoneToken(tokenIn);
+    const isNew = !String(user.name || '').trim() || !String(user.last_name || '').trim();
     claimOrdersForUser(user);
     const token = signUser(user);
     setAuthCookie(res, token);
-    res.json({ user: publicUser(user), token });
+    res.json({ user: publicUser(user), token, isNew });
   } catch (e) {
     res.status(e.status || 400).json({ error: e.message });
   }

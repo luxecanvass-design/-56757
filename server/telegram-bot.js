@@ -249,7 +249,7 @@ async function startSupportRequest(chatId, from = {}) {
 
   const existing = getSupport(chatId);
   if (existing && (existing.status === 'waiting' || existing.status === 'active')) {
-    await sendWithMarkupFallback(chatId, {
+    const again = await sendWithMarkupFallback(chatId, {
       text: existing.status === 'active'
         ? 'Диалог уже открыт — напишите ваш вопрос.'
         : 'Запрос уже отправлен. Оператор скоро ответит — напишите вопрос.',
@@ -257,6 +257,10 @@ async function startSupportRequest(chatId, from = {}) {
         ? { inline_keyboard: [[cbBtn('Отменить', 'sup:cancel')]] }
         : undefined
     });
+    if (again && again.message_id) {
+      trackSupportMsg(existing, 'user', again.message_id);
+      setSupport(chatId, existing);
+    }
     return;
   }
 
@@ -366,7 +370,9 @@ async function openSupportDialog(opChatId, userChatId, notifyMsgId) {
     } catch (_) {}
   }
 
-  const hello = await sendWithMarkupFallback(userChatId, { text: 'Здравствуйте!' });
+  const hello = await sendWithMarkupFallback(userChatId, {
+    text: '<b>Оператор:</b>\nЗдравствуйте!'
+  });
   trackSupportMsg(session, 'user', hello && hello.message_id);
 
   for (const t of session.pendingTexts || []) {
@@ -484,7 +490,7 @@ async function handleSupportUserMessage(msg) {
 /** Сообщения оператора в активном диалоге. */
 async function handleSupportOperatorMessage(msg) {
   const chatId = msg.chat.id;
-  if (String(chatId) !== SUPPORT_OPERATOR_CHAT() && !isOwnerChat(chatId)) return false;
+  if (String(chatId) !== SUPPORT_OPERATOR_CHAT()) return false;
 
   const session = findActiveSupportForOperator(chatId);
   if (!session) return false;
@@ -496,7 +502,7 @@ async function handleSupportOperatorMessage(msg) {
 
   try {
     const m = await sendWithMarkupFallback(session.userChatId, {
-      text: escHtml(text)
+      text: `<b>Оператор:</b>\n${escHtml(text)}`
     });
     trackSupportMsg(session, 'user', m && m.message_id);
     setSupport(session.userChatId, session);
@@ -561,8 +567,9 @@ function welcomeText() {
     '',
     'Одежда, в которой хочется жить каждый день.',
     '',
-    'Чтобы войти или зарегистрироваться — нажмите «Поделиться контактом».',
-    shop ? 'Или откройте сайт кнопкой ниже.' : 'Ссылка на сайт появится после настройки PUBLIC_URL (HTTPS).'
+    shop
+      ? 'Откройте сайт кнопкой ниже — вход и регистрация там через Telegram.'
+      : 'Ссылка на сайт появится после настройки PUBLIC_URL (HTTPS).'
   ].join('\n');
 }
 
@@ -804,6 +811,16 @@ async function upsertMain(chatId, { text, reply_markup }) {
 
 async function showWelcome(chatId, from = {}) {
   claimOwner(chatId, from);
+  setAwait(chatId, null);
+  /* убрать залипшую reply-клавиатуру «Поделиться контактом» */
+  try {
+    const rm = await api('sendMessage', {
+      chat_id: chatId,
+      text: '\u200B',
+      reply_markup: { remove_keyboard: true }
+    });
+    if (rm && rm.message_id) await safeDelete(chatId, rm.message_id);
+  } catch (_) {}
   return upsertMain(chatId, {
     text: welcomeText(),
     reply_markup: welcomeMarkup(chatId)
@@ -1034,25 +1051,57 @@ async function handleContactReg(msg) {
       });
     } catch (_) {}
 
+    if (!url) {
+      console.error('TG phone reg: нет PUBLIC_URL/HTTPS — кнопка входа не создана');
+      await sendWithMarkupFallback(chatId, {
+        text: [
+          existed ? '<b>С возвращением</b>' : '<b>Вы зарегистрированы</b>',
+          '',
+          'Аккаунт создан, но ссылка на сайт ещё не настроена (нужен HTTPS PUBLIC_URL).',
+          'Откройте сайт магазина вручную и войдите через Telegram снова.'
+        ].join('\n')
+      });
+      console.log('TG phone reg', user.id, c.phone_number, existed ? 'login' : 'reg', 'NO_URL');
+      return true;
+    }
+
     const text = [
       existed ? '<b>С возвращением</b>' : '<b>Вы зарегистрированы</b>',
       '',
       existed
         ? 'Вход выполнен по номеру Telegram.'
         : 'Аккаунт в Luxe Canvas создан.',
-      url
-        ? 'Нажмите кнопку — вернётесь на сайт уже под своим аккаунтом.'
-        : 'Откройте сайт магазина — вы сможете войти через этого бота.'
+      'Нажмите кнопку — вернётесь на сайт уже под своим аккаунтом.'
     ].join('\n');
 
-    const markup = url
-      ? { inline_keyboard: [[urlBtn(existed ? 'Вернуться на сайт' : 'Перейти на сайт', url, 'success')]] }
-      : undefined;
+    const markup = {
+      inline_keyboard: [[urlBtn(existed ? 'Вернуться на сайт' : 'Перейти на сайт', url, 'success')]]
+    };
 
-    const sent = await sendWithMarkupFallback(chatId, { text, reply_markup: markup });
+    let sent = null;
+    try {
+      sent = await sendWithMarkupFallback(chatId, { text, reply_markup: markup });
+    } catch (e) {
+      console.error('TG phone button fail:', e.message);
+    }
+    /* sendWithMarkupFallback при ошибке markup шлёт текст БЕЗ кнопки и без URL — досылаем ссылку */
+    const hasBtn = !!(sent && sent.reply_markup && sent.reply_markup.inline_keyboard
+      && sent.reply_markup.inline_keyboard.length);
+    if (!hasBtn) {
+      try {
+        const fallback = await api('sendMessage', {
+          chat_id: chatId,
+          text: (existed ? 'С возвращением!' : 'Вы зарегистрированы!') + '\n\nОткройте сайт:\n' + url,
+          disable_web_page_preview: true
+        });
+        sent = fallback || sent;
+      } catch (e2) {
+        console.error('TG phone url fallback:', e2.message);
+      }
+    }
     if (sent && sent.message_id) setMainMsgId(chatId, sent.message_id);
 
-    console.log('TG phone reg', user.id, c.phone_number, existed ? 'login' : 'reg');
+    console.log('TG phone reg', user.id, c.phone_number, existed ? 'login' : 'reg', hasBtn ? 'btn' : 'url-fallback');
   } catch (e) {
     console.error('TG contact reg:', e.message);
     try {
@@ -1178,9 +1227,9 @@ async function handleMessage(msg) {
       return;
     }
 
-    /* обычный /start или любой вход в бота без спец-payload — сразу контакт */
+    /* обычный /start — приветствие и ссылка на сайт (не сразу номер) */
     if (isStart) {
-      await showRegAskPhone(chatId, from, 'reg');
+      await showWelcome(chatId, from);
       await safeDelete(chatId, msg.message_id);
       return;
     }
@@ -1234,7 +1283,7 @@ async function handleCallback(cq) {
 
   if (/^sup:open:(-?\d+)$/.test(data)) {
     const userChatId = data.split(':')[2];
-    if (String(chatId) !== SUPPORT_OPERATOR_CHAT() && !isOwnerChat(chatId)) {
+    if (String(chatId) !== SUPPORT_OPERATOR_CHAT()) {
       await answer('Нет доступа', true);
       return;
     }
@@ -1245,7 +1294,7 @@ async function handleCallback(cq) {
 
   if (/^sup:close:(-?\d+)$/.test(data)) {
     const userChatId = data.split(':')[2];
-    if (String(chatId) !== SUPPORT_OPERATOR_CHAT() && !isOwnerChat(chatId)) {
+    if (String(chatId) !== SUPPORT_OPERATOR_CHAT()) {
       await answer('Нет доступа', true);
       return;
     }
